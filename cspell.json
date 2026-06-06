@@ -1,0 +1,19 @@
+{
+    "version": "0.2",
+    "language": "en",
+    "words": [
+        "supabase",
+        "fkey",
+        "nextjs",
+        "signin",
+        "signout",
+        "signup",
+        "cybercrime"
+    ],
+    "ignorePaths": [
+        "node_modules/**",
+        "dist/**",
+        "build/**",
+        ".git/**"
+    ]
+} 
