@@ -3,9 +3,8 @@
 import { useEffect, useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { formatDistanceToNow } from "date-fns"
-import { AnyCnameRecord } from "node:dns"
 
-export function RecentCases() {
+export default function RecentCases() {
   const [cases, setCases] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -17,7 +16,7 @@ export function RecentCases() {
 
         if (data.success && Array.isArray(data.cases)) {
           // Extra defensive filtering to ensure everything in the array is an object
-          setCases(data.cases.filter((c:any) => c && typeof c === "object" && c.id))
+          setCases(data.cases.filter((c: any) => c && typeof c === "object" && c.id))
         }
       } catch (error) {
         console.error("Failed to fetch recent cases:", error)
@@ -31,21 +30,21 @@ export function RecentCases() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "pending": return "bg-yellow-100 text-yellow-800"
-      case "under_investigation": return "bg-blue-100 text-blue-800"
-      case "completed": return "bg-green-100 text-green-800"
-      case "closed": return "bg-gray-100 text-gray-800"
-      default: return "bg-gray-100 text-gray-800"
+      case "pending": return "bg-yellow-100 text-yellow-800 hover:bg-yellow-100"
+      case "under_investigation": return "bg-blue-100 text-blue-800 hover:bg-blue-100"
+      case "completed": return "bg-green-100 text-green-800 hover:bg-green-100"
+      case "closed": return "bg-gray-100 text-gray-800 hover:bg-gray-100"
+      default: return "bg-gray-100 text-gray-800 hover:bg-gray-100"
     }
   }
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case "low": return "bg-green-100 text-green-800"
-      case "medium": return "bg-yellow-100 text-yellow-800"
-      case "high": return "bg-orange-100 text-orange-800"
-      case "critical": return "bg-red-100 text-red-800"
-      default: return "bg-gray-100 text-gray-800"
+      case "low": return "bg-green-100 text-green-800 hover:bg-green-100"
+      case "medium": return "bg-yellow-100 text-yellow-800 hover:bg-yellow-100"
+      case "high": return "bg-orange-100 text-orange-800 hover:bg-orange-100"
+      case "critical": return "bg-red-100 text-red-800 hover:bg-red-100"
+      default: return "bg-gray-100 text-gray-800 hover:bg-gray-100"
     }
   }
 
@@ -69,17 +68,11 @@ export function RecentCases() {
   return (
     <div className="space-y-4">
       {cases.map((caseItem) => {
-        // Double check item health
         if (!caseItem || !caseItem.id) return null
 
-        // Defensive lookup resolution:
-        // We evaluate every single potential object path safely using optional chaining.
         const caseNumber = caseItem?.case_number ?? "N/A"
         const title = caseItem?.title ?? "Untitled Case"
-        
-        // This covers variations like caseItem.police_station or caseItem.stations
         const stationName = caseItem?.police_station?.name ?? caseItem?.station?.name ?? "Unassigned Station"
-        
         const rawStatus = caseItem?.status ?? ""
         const rawPriority = caseItem?.priority ?? ""
         
@@ -108,10 +101,11 @@ export function RecentCases() {
               </div>
               
               <div className="flex flex-col gap-1 items-end">
-                <Badge className={getStatusColor(rawStatus)} variant="secondary">
+                {/* Changed variant to "outline" so custom background utilities map nicely without fighting style defaults */}
+                <Badge className={getStatusColor(rawStatus)} variant="outline">
                   {rawStatus ? rawStatus.replace("_", " ") : "unknown"}
                 </Badge>
-                <Badge className={getPriorityColor(rawPriority)} variant="secondary">
+                <Badge className={getPriorityColor(rawPriority)} variant="outline">
                   {rawPriority || "unknown"}
                 </Badge>
               </div>

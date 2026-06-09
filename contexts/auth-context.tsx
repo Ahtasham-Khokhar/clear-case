@@ -92,107 +92,72 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const supabase = createClient()
 
-  const register = async (data: RegisterData) => {
-    try {
-      // 1. Call the server-side API to create the auth user + DB profile
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      })
+ const register = async (data: RegisterData) => {
+  try {
+    // 1. Call your server-side API to create the user + DB profile
+    const response = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
 
-      if (!response.ok) {
-        let errorDetails = 'Unknown error'
-        try {
-          const errorBody = await response.json()
-          errorDetails = errorBody.error || JSON.stringify(errorBody)
-        } catch (e) {
-          const errorText = await response.text()
-          errorDetails = errorText || `HTTP ${response.status}`
-        }
-        console.error(`API returned ${response.status}:`, errorDetails)
-        throw new Error(`Registration failed: ${errorDetails}`)
-      }
+    const result = await response.json()
 
-      const result = await response.json()
+    if (!response.ok) {
+      throw new Error(result.error || `HTTP error! status: ${response.status}`)
+    }
 
-      if (!result.success) {
-        throw new Error(result.error || 'Registration failed')
-      }
+    // 2. STOP HERE. Do not force an immediate client-side login.
+    // Return the response details directly to your registration page form.
+    return { 
+      success: true, 
+      role: result.role || data.role,
+      message: result.message || 'Registration successful! Please wait for admin approval or log in.'
+    }
 
-      // 2. After server-side registration, try to sign in on the client side
-      const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
-        email: data.email,
-        password: data.password,
-      })
-
-      if (signInError) {
-        if (signInError.message?.includes('Email not confirmed') || 
-            signInError.message?.includes('not confirmed')) {
-          console.info('Registration successful. User must confirm email before login.')
-          return { 
-            success: true, 
-            role: result.role,
-            message: 'Please verify your email before logging in'
-          }
-        }
-        console.warn('Auto-login after register failed:', signInError)
-        return { success: true, role: result.role }
-      }
-
-      if (!authData.user) {
-        return { success: true, role: result.role }
-      }
-
-      // 3. Fetch user profile metadata from DB
-      const profile = await fetchUserProfile(supabase, authData.user.id)
-      if (profile) {
-        setAuthUser(authData.user)
-        setUser(profile)
-      }
-
-      return { success: true, role: result.role }
-    } catch (error) {
-      console.error('Registration error handled:', error)
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Registration failed',
-      }
+  } catch (error) {
+    console.error('Registration error handled:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Registration failed',
     }
   }
+}
 
-  const login = async (email: string, password: string) => {
-    try {
-      const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
+const login = async (email: string, password: string) => {
+  try {
+    // 1. Call your custom API route instead of the Supabase SDK directly
+    const response = await fetch("/api/auth/login", { // Ensure this matches your exact route path
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password }),
+    })
 
-      if (signInError) throw signInError
+    const data = await response.json()
 
-      if (!authData.user) {
-        throw new Error('No user returned from authentication')
-      }
+    // 2. If the API route returned a bad status (400, 401, 403, 500)
+    if (!response.ok) {
+      throw new Error(data.error || "Login failed")
+    }
 
-      const profile = await fetchUserProfile(supabase, authData.user.id)
+    // 3. Update your context states with the data returned from the server
+    // Note: your API returns { user: { ...authData, ...userProfile } }
+    setAuthUser(data.user) 
+    setUser(data.user)
 
-      if (!profile) {
-        throw new Error('User profile not found. Please contact support.')
-      }
+    // 4. Return exactly what your page.tsx handleSubmit expects
+    return { success: true, user: data.user }
 
-      setAuthUser(authData.user)
-      setUser(profile)
-
-      return { success: true, user: profile }
-    } catch (error) {
-      console.error('Login error:', error)
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Login failed',
-      }
+  } catch (error) {
+    console.error("Login error:", error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Login failed",
     }
   }
-
+}
   const logout = async () => {
     try {
       await supabase.auth.signOut()

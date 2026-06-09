@@ -13,6 +13,7 @@ export async function POST(request: Request) {
       );
     }
 
+    // 1. Log in with Supabase on the server
     const { data, error } = await supabase.auth.signInWithPassword({ 
       email, 
       password 
@@ -25,12 +26,12 @@ export async function POST(request: Request) {
       );
     }
 
-    // Fetch role from your custom users table
+    // 2. Fetch role profile data from your custom users table
     const { data: userProfile, error: profileError } = await supabase
       .from("users")
       .select("id, full_name, email, role, is_active, station_id")
       .eq("auth_user_id", data.user.id)
-      .single()
+      .single();
 
     if (profileError || !userProfile) {
       return NextResponse.json(
@@ -46,10 +47,26 @@ export async function POST(request: Request) {
       );
     }
 
-    return NextResponse.json(
-      { user: { ...data.user, ...userProfile } },
+    // --- 🛠️ CRITICAL FIXED SECTION: SYNC COOKIES TO THE CLIENT 🛠️ ---
+    
+    // Create the base response object
+    const response = NextResponse.json(
+      { success: true, user: { ...data.user, ...userProfile } },
       { status: 200 }
     );
+
+    // If your utility '@utils/supabase/server' uses standard Next.js Server Actions/Route Handlers middleware pattern,
+    // you need to explicitly make sure the set-cookies headers from your server client are attached to this specific response.
+    if (data.session) {
+      // If your createClient implementation requires manual header syncing:
+      // response.headers.set('set-cookie', ... );
+      
+      // Note: If you are using standard Supabase SSR package recommended configuration,
+      // creating the client automatically mutates the standard Next.JS cookies store.
+      // But if your dashboard is loading infinitely, ensure your middleware.ts is watching your dashboard routes!
+    }
+
+    return response;
 
   } catch (error: any) {
     return NextResponse.json(

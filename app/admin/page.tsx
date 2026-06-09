@@ -2,7 +2,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Building2, FileText, CheckCircle } from "lucide-react"
 import DashboardStats from "@/components/dashboard-stats"
-import { RecentCases } from "@/components/admin/recent-cases"
+import RecentCases from "@/components/admin/recent-cases"
 
 export default function Dashboard() {
   return (

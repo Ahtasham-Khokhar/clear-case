@@ -1,4 +1,6 @@
-import { StationRegistrationForm } from "@/components/admin/station-registration-form"
+export const dynamic = "force-dynamic"
+
+import StationRegistrationFormWrapper from "@/components/admin/station-registration-form-wrapper"
 
 export default function NewStationPage() {
   return (
@@ -8,7 +10,7 @@ export default function NewStationPage() {
         <p className="text-muted-foreground">Complete the multi-step form to register a new police station</p>
       </div>
 
-      <StationRegistrationForm />
+      <StationRegistrationFormWrapper />
     </div>
   )
 }

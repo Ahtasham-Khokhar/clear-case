@@ -1,6 +1,7 @@
-'use client'
+export const dynamic = "force-dynamic"
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { RecentCases } from "@/components/admin/recent-cases"
+import RecentCasesLoader from "@/components/admin/recent-cases-loader"
 
 export default function AdminCasesPage() {
   return (
@@ -16,7 +17,7 @@ export default function AdminCasesPage() {
           <CardDescription>Recent cases reported across all police stations</CardDescription>
         </CardHeader>
         <CardContent>
-          <RecentCases />
+          <RecentCasesLoader />
         </CardContent>
       </Card>
     </div>

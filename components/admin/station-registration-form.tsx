@@ -405,3 +405,4 @@ export function StationRegistrationForm() {
     </div>
   )
 }
+export default StationRegistrationForm;
