@@ -13,7 +13,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // 1. Log in with Supabase on the server
     const { data, error } = await supabase.auth.signInWithPassword({ 
       email, 
       password 
@@ -26,7 +25,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // 2. Fetch role profile data from your custom users table
     const { data: userProfile, error: profileError } = await supabase
       .from("users")
       .select("id, full_name, email, role, is_active, station_id")
@@ -46,10 +44,7 @@ export async function POST(request: Request) {
         { status: 403 }
       );
     }
-
-    // --- 🛠️ CRITICAL FIXED SECTION: SYNC COOKIES TO THE CLIENT 🛠️ ---
     
-    // Create the base response object
     const response = NextResponse.json(
       { success: true, user: { ...data.user, ...userProfile } },
       { status: 200 }
